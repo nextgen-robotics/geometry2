@@ -277,8 +277,9 @@ bool TimeCache::insertData(const TransformStorage& new_data, std::string* error_
   }
   if (storage_it != storage_.end() && storage_it->stamp_ == new_data.stamp_)
   {
-    if (error_str)
+    if (error_str && new_data.stamp_ > last_repeated_warn_time_ + ros::Duration(10.0))
     {
+      last_repeated_warn_time_ = new_data.stamp_;
       *error_str = "TF_REPEATED_DATA ignoring data with redundant timestamp";
     }
     return false;
@@ -294,6 +295,8 @@ bool TimeCache::insertData(const TransformStorage& new_data, std::string* error_
 
 void TimeCache::clearList()
 {
+  // Reset the TF_REPEATED_DATA error message throttle.
+  last_repeated_warn_time_ = ros::Time(0.0);
   storage_.clear();
 }
 
